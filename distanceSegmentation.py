@@ -1,8 +1,6 @@
 import numpy as np
 from PyQt5.QtCore import QPoint, Qt
 from PyQt5.QtGui import QImage, QColor, QPixmap
-from spectral.io.bilfile import BilFile
-
 
 def distanceSegmentation(p: QPoint, arr: np.ndarray, orgSceneImg: QImage, threshold) -> QImage:
     matching = []

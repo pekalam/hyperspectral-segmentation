@@ -1,10 +1,14 @@
+from typing import Callable
+
 import numpy as np
-from PyQt5.QtCore import QPoint, Qt
+from PyQt5.QtCore import QPoint, Qt, QCoreApplication
 from PyQt5.QtGui import QPixmap, QPainterPath, QPen, QColor, QImage
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QLabel
-from spectral import get_rgb
-from spectral import *
+from PyQt5.QtWidgets import QGraphicsView, QLabel, QGraphicsScene, QGraphicsPixmapItem
+from spectral import open_image, get_rgb
 from spectral.io.bilfile import BilFile
+
+from gui.hyperspectralImgModel import HyperspectralImgModel
+
 
 class SelectionPanelController:
     def __init__(self, graphicsView: QGraphicsView, result: QLabel, pixelPos: QLabel, *args, **kwargs):
@@ -13,16 +17,24 @@ class SelectionPanelController:
         self.graphicsView.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
         self.graphicsView.mousePressEvent = self.onSceneClick
         self.scaleFactor = 1
-        self.onImgClickCallbacks = []
+        self.onImgClickCallback = None
+        self.onImgLoadedCallback = None
         self.resultLabel = result
         self.pixelPos = pixelPos
 
-    def subscribeOnImgClick(self, callback):
-        self.onImgClickCallbacks.append(callback)
+    def setOnImgClick(self, fn):
+        self.onImgClickCallback = fn
+
+    def setOnImgLoaded(self, fn: Callable[[HyperspectralImgModel], None]):
+        self.onImgLoadedCallback = fn
 
     def __raiseOnImgClick(self, p: QPoint):
-        for f in self.onImgClickCallbacks:
-            f(p)
+        if self.onImgClickCallback is not None:
+            self.onImgClickCallback(p)
+
+    def __raiseOnImgLoaded(self, model: HyperspectralImgModel):
+        if self.onImgLoadedCallback is not None:
+            self.onImgLoadedCallback(model)
 
     def scaleImg(self, factor):
         p = QPixmap.fromImage(self.loadedImg.scaled(self.loadedImg.size().width() * factor,
@@ -56,6 +68,7 @@ class SelectionPanelController:
         imgPoint = QPoint(mapped.x() / self.scaleFactor, mapped.y() / self.scaleFactor)
         self.updateCrosshair(scenePoint)
         self.pixelPos.setText("x: %d y: %d" % (imgPoint.x(), imgPoint.y()))
+        QCoreApplication.processEvents()
         self.__raiseOnImgClick(imgPoint)
 
     def loadImg(self, filePath: str):
@@ -64,6 +77,9 @@ class SelectionPanelController:
         rgb = rgb * 255
         rgb = rgb.astype(np.uint8)
         self.loadedImg = QImage(rgb.tobytes(), rgb.shape[0], rgb.shape[1], rgb.shape[0] * 3, QImage.Format_RGB888)
+
+        self.hyperspectralImg = HyperspectralImgModel(self.file, self.loadedImg)
+        self.__raiseOnImgLoaded(self.hyperspectralImg)
 
         p = QPixmap.fromImage(self.loadedImg, Qt.AutoColor)
         self.imgItem: QGraphicsPixmapItem = self.graphicsView.scene().addPixmap(p)
