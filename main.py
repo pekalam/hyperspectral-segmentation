@@ -48,10 +48,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.pcaSelPanelCtrl.loadImg('jasperRidge2_R198.hdr')
 
     def onImgClick(self, imgPoint: QPoint):
-        self.distanceMethodController.startSegmentation(imgPoint, self.selPanelCtrl.file, self.selPanelCtrl.loadedImg)
+        self.distanceMethodController.doSegmentationAt(imgPoint)
 
     def onPcaClick(self, imgPoint: QPoint):
-        self.pcaMethodController.startSegmentation(imgPoint, self.pcaSelPanelCtrl.file, self.pcaSelPanelCtrl.loadedImg)
+        self.pcaMethodController.doSegmentationAt(imgPoint)
 
     def onPcaSegmentationFinished(self, img: QImage):
         self.pcaSelPanelCtrl.displayResult(img)

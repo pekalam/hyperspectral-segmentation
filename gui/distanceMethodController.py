@@ -9,53 +9,50 @@ from gui.hyperspectralImgModel import HyperspectralImgModel
 
 class DistanceMethodController:
     def __init__(self, thrSlider: QSlider, thrVal: QLabel, applyBtn: QPushButton, panel: QWidget, *args, **kwargs):
-        self.slider: QSlider = thrSlider
-        self.valLabel: QLabel = thrVal
-        self.applyBtn = applyBtn
-        self.panel = panel
-        self.onSegmentationFinishedCallback = None
-        self.img = None
-        self.point = None
-        self.orgSceneImg = None
+        self._slider: QSlider = thrSlider
+        self._valLabel: QLabel = thrVal
+        self._applyBtn = applyBtn
+        self._panel = panel
+        self._point = None
+        self._firstSegmentation = False
+        self._model: HyperspectralImgModel = None
+        self.__onSegmentationFinishedCallback = None
         applyBtn.clicked.connect(self.onApplyClicked)
         thrSlider.valueChanged.connect(self.onThresholdValueChanged)
         self._toggleControlsDisabled()
 
-    def startSegmentation(self, p: QPoint, img: BilFile, orgSceneImg: QImage):
-        self.img: BilFile = img
-        self.point = p
-        self.orgSceneImg = orgSceneImg
+    def doSegmentationAt(self, p: QPoint):
+        self._point = p
+        self._firstSegmentation = True
         self.beginSegmentation()
         self._toggleControlsDisabled()
 
     def setImg(self, model: HyperspectralImgModel):
-        self.slider.setMinimum(0)
-        self.slider.setMaximum(50_000)
-        self.slider.setValue(30_000)
+        self._model = model
+        self._slider.setMinimum(0)
+        self._slider.setMaximum(50_000)
+        self._slider.setValue(30_000)
+        self._applyBtn.setDisabled(True)
 
     def beginSegmentation(self):
-        if self._isSegementationDone():
-            segmented = distanceSegmentation(self.point, self.img.asarray(), self.orgSceneImg, self.slider.value())
+        if self._firstSegmentation:
+            segmented = distanceSegmentation(self._point, self._model.img.asarray(), self._model.sceneImg, self._slider.value())
             self.__raiseOnSegmentationFinished(segmented)
 
     def setOnSegmentationFinished(self, fn):
-        self.onSegmentationFinishedCallback = fn
+        self.__onSegmentationFinishedCallback = fn
 
     def onThresholdValueChanged(self, val):
-        self.valLabel.setText(str(val))
-        self.applyBtn.setDisabled(False)
+        self._valLabel.setText(str(val))
+        self._applyBtn.setDisabled(False)
 
     def onApplyClicked(self):
         self.beginSegmentation()
-        self.applyBtn.setDisabled(True)
-
-    def _isSegementationDone(self) -> bool:
-        return self.img is not None and self.point is not None and self.orgSceneImg is not None
+        self._applyBtn.setDisabled(True)
 
     def _toggleControlsDisabled(self):
-        segDone = self._isSegementationDone()
-        self.panel.setDisabled(not segDone)
+        self._panel.setDisabled(not self._firstSegmentation)
 
-    def __raiseOnSegmentationFinished(self, img: QImage):
-        if self.onSegmentationFinishedCallback is not None:
-            self.onSegmentationFinishedCallback(img)
+    def _raiseOnSegmentationFinished(self, img: QImage):
+        if self.__onSegmentationFinishedCallback is not None:
+            self.__onSegmentationFinishedCallback(img)
