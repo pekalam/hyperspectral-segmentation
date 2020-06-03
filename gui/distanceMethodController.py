@@ -37,7 +37,7 @@ class DistanceMethodController:
     def beginSegmentation(self):
         if self._firstSegmentation:
             segmented = distanceSegmentation(self._point, self._model.img.asarray(), self._model.sceneImg, self._slider.value())
-            self.__raiseOnSegmentationFinished(segmented)
+            self._raiseOnSegmentationFinished(segmented)
 
     def setOnSegmentationFinished(self, fn):
         self.__onSegmentationFinishedCallback = fn

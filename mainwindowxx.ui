@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_3">
+   <layout class="QVBoxLayout" name="verticalLayout_7">
     <property name="bottomMargin">
      <number>20</number>
     </property>
@@ -367,6 +367,45 @@
     </item>
    </layout>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuImage">
+    <property name="title">
+     <string>Image</string>
+    </property>
+    <addaction name="actionJasper_Ridge"/>
+    <addaction name="actionSamson"/>
+    <addaction name="actionUrban"/>
+   </widget>
+   <addaction name="menuImage"/>
+  </widget>
+  <action name="actionJasper_Ridge">
+   <property name="text">
+    <string>Jasper Ridge</string>
+   </property>
+  </action>
+  <action name="actionSamson">
+   <property name="text">
+    <string>Samson</string>
+   </property>
+  </action>
+  <action name="actionUrban">
+   <property name="text">
+    <string>Urban</string>
+   </property>
+  </action>
+  <action name="actionCuprite">
+   <property name="text">
+    <string>Cuprite</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

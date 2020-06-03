@@ -6,13 +6,48 @@ from PyQt5.QtCore import QPoint
 from PyQt5 import QtWidgets
 from PyQt5 import uic
 from PyQt5.QtGui import QImage
-from PyQt5.QtWidgets import QLabel, QGraphicsView, QSlider, QPushButton, QWidget
+from PyQt5.QtWidgets import QLabel, QGraphicsView, QSlider, QPushButton, QWidget, QAction, QMenu
 from spectral import *
 
 from gui.distanceMethodController import DistanceMethodController
 from gui.hyperspectralImgModel import HyperspectralImgModel
 from gui.pcaDistanceController import PcaDistanceController
 from gui.selectionPanelController import SelectionPanelController
+
+class ImgSelectionController:
+    IMG_FILES=['jasperRidge2_R198.hdr', 'samson_1.img.hdr', 'Urban_F210.hdr']
+
+    def __init__(self, menu: QtWidgets.QMainWindow, *args, **kwargs):
+        jasperRidge: QAction = menu.findChild(QAction, 'actionJasper_Ridge')
+        samson: QAction = menu.findChild(QAction, 'actionSamson')
+        urban: QAction = menu.findChild(QAction, 'actionUrban')
+
+        self.onImgSelectedCallback = None
+        self.selectedInd = 0
+        jasperRidge.triggered.connect(self.onJasperEdgeSelected)
+        urban.triggered.connect(self.onUrbanSelected)
+        samson.triggered.connect(self.onSamsonSelected)
+
+    def setOnImgSelected(self, fn):
+        self.onImgSelectedCallback = fn
+
+    def __raiseImgSelected(self):
+        if self.onImgSelectedCallback is not None:
+            self.onImgSelectedCallback(self.IMG_FILES[self.selectedInd])
+
+    def onJasperEdgeSelected(self):
+        self.selectedInd = 0
+        self.__raiseImgSelected()
+
+    def onUrbanSelected(self):
+        self.selectedInd = 2
+        self.__raiseImgSelected()
+
+    def onSamsonSelected(self):
+        self.selectedInd = 1
+        self.__raiseImgSelected()
+
+
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -47,6 +82,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.selPanelCtrl.loadImg('jasperRidge2_R198.hdr')
         self.pcaSelPanelCtrl.loadImg('jasperRidge2_R198.hdr')
 
+        self.imgSelectCtrl = ImgSelectionController(self)
+        self.imgSelectCtrl.setOnImgSelected(self.onImgSelected)
+
+
     def onImgClick(self, imgPoint: QPoint):
         self.distanceMethodController.doSegmentationAt(imgPoint)
 
@@ -64,6 +103,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def onPcaImgLoaded(self, model: HyperspectralImgModel):
         self.pcaMethodController.setImg(model)
+
+    def onImgSelected(self, path: str):
+        self.selPanelCtrl.loadImg(path)
+        self.pcaSelPanelCtrl.loadImg(path)
 
 
 app = QtWidgets.QApplication(sys.argv)

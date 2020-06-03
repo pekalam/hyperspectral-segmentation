@@ -19,6 +19,8 @@ class SelectionPanelController:
         self.scaleFactor = 1
         self.onImgClickCallback = None
         self.onImgLoadedCallback = None
+        self.imgItem = None
+        self.crossItem = None
         self.resultLabel = result
         self.pixelPos = pixelPos
 
@@ -37,14 +39,17 @@ class SelectionPanelController:
             self.onImgLoadedCallback(model)
 
     def scaleImg(self, factor):
-        p = QPixmap.fromImage(self.loadedImg.scaled(self.loadedImg.size().width() * factor,
-                                                    self.loadedImg.size().height() * factor), Qt.AutoColor)
+        img = self.hyperspectralImg.sceneImg
+        p = QPixmap.fromImage(img.scaled(img.size().width() * factor,
+                                                    img.size().height() * factor), Qt.AutoColor)
         self.graphicsView.scene().removeItem(self.imgItem)
         self.graphicsView.mousePressEvent = self.onSceneClick
         self.imgItem: QGraphicsPixmapItem = self.graphicsView.scene().addPixmap(p)
         self.scaleFactor = factor
 
     def renderCrosshair(self):
+        if self.crossItem is not None:
+            self.graphicsView.scene().removeItem(self.crossItem)
         path = QPainterPath()
         path.moveTo(10, 0)
         path.lineTo(10, + 20)
@@ -72,16 +77,19 @@ class SelectionPanelController:
         self.__raiseOnImgClick(imgPoint)
 
     def loadImg(self, filePath: str):
-        self.file: BilFile = open_image(filePath)
-        rgb = get_rgb(self.file)
+        if self.imgItem is not None:
+            self.graphicsView.scene().removeItem(self.imgItem)
+            self.resultLabel.clear()
+        file: BilFile = open_image(filePath)
+        rgb = get_rgb(file)
         rgb = rgb * 255
         rgb = rgb.astype(np.uint8)
-        self.loadedImg = QImage(rgb.tobytes(), rgb.shape[0], rgb.shape[1], rgb.shape[0] * 3, QImage.Format_RGB888)
+        loadedImg = QImage(rgb.tobytes(), rgb.shape[0], rgb.shape[1], rgb.shape[0] * 3, QImage.Format_RGB888)
 
-        self.hyperspectralImg = HyperspectralImgModel(self.file, self.loadedImg)
+        self.hyperspectralImg = HyperspectralImgModel(file, loadedImg)
         self.__raiseOnImgLoaded(self.hyperspectralImg)
 
-        p = QPixmap.fromImage(self.loadedImg, Qt.AutoColor)
+        p = QPixmap.fromImage(loadedImg, Qt.AutoColor)
         self.imgItem: QGraphicsPixmapItem = self.graphicsView.scene().addPixmap(p)
         self.scaleImg(8)
         self.renderCrosshair()
