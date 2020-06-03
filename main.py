@@ -1,125 +1,92 @@
-from PyQt5.QtCore import Qt, QPoint
-from skimage import io
-import numpy as np
-import matplotlib.pyplot as plt
+from PyQt5.QtCore import QPoint
 
 # read the image stack
 # show the image
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets
 from PyQt5 import uic
-from PyQt5.QtGui import QPixmap, QImage, QColor, QPainterPath, QPen
-from PyQt5.QtWidgets import QLabel, QSlider, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem
+from PyQt5.QtGui import QImage
+from PyQt5.QtWidgets import QLabel, QGraphicsView, QSlider
 from spectral import *
-from spectral.graphics import get_rgb
-import math
+from spectral.io.bilfile import BilFile
+import cv2
+import numpy as np
+
+from distanceMethodController import DistanceMethodController
+from distanceSegmentation import distanceSegmentation
+from selectionPanelController import SelectionPanelController
+
+
+def pcaDistanceSegmentation(p: QPoint, img: BilFile, orgSceneImg: QImage, threshold, maxComponents) -> QImage:
+    imgarr = img.asarray()
+    imgarr = imgarr.reshape((imgarr.shape[0] * imgarr.shape[1], imgarr.shape[2]))
+    mean, eigenv = np.array(cv2.PCACompute(imgarr, mean=None))
+    reconstructed = cv2.PCABackProject(imgarr, mean[:, 0:maxComponents], eigenv[:, 0:maxComponents])
+    reconstructed = reconstructed.reshape(img.shape[0], img.shape[1], maxComponents)
+    return distanceSegmentation(p, reconstructed, orgSceneImg, threshold)
+
+
+class PcaDistanceController(DistanceMethodController):
+    def __init__(self, thrSlider: QSlider, thrVal: QLabel, maxComponentsSlider: QSlider, maxComponentsVal: QLabel, *args, **kwargs):
+        super().__init__(thrSlider, thrVal, *args, **kwargs)
+        self.onSegmentationFinished = None
+        self.maxComponentsVal = maxComponentsVal
+        self.maxComponentsSlider = maxComponentsSlider
+        maxComponentsSlider.valueChanged.connect(self.onMaxComponentsValChanged)
+        maxComponentsSlider.setValue(50)
+
+    def beginSegmentation(self):
+        segmented = pcaDistanceSegmentation(self.point, self.img, self.orgSceneImg, self.slider.value(), self.maxComponentsSlider.value())
+        self.onSegmentationFinished(segmented)
+
+    def setOnSegmentationFinished(self, fn):
+        self.onSegmentationFinished = fn
+
+    def onMaxComponentsValChanged(self, val):
+        self.maxComponentsVal.setText(str(val))
+        if self.img is not None and self.point is not None and self.orgSceneImg is not None:
+            self.beginSegmentation()
+
 
 class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         uic.loadUi("mainwindowxx.ui", self)
-        #self.a: QLabel = self.findChild(QLabel, 'label')
-        self.a: QGraphicsView = self.findChild(QGraphicsView, 'graphicsView')
-        self.a.setScene(QGraphicsScene())
-        self.a.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
-        self.resultLabel: QLabel = self.findChild(QLabel, 'label')
-        #slider: QSlider = self.findChild(QSlider, 'slider')
-        #slider.setMaximum(100)
-        #slider.setMinimum(1)
-        #slider.valueChanged.connect(self.sliderValChanged)
-        self.a.mousePressEvent = self.onImgClick
-        self.loadImg()
-        self.renderCross(QPoint(200,200))
+        self.selPanelCtrl = SelectionPanelController(self.findChild(QGraphicsView, 'graphicsView'),
+                                                     self.findChild(QLabel, 'label'),
+                                                     self.findChild(QLabel, 'dstPixelPos'))
+        self.selPanelCtrl.subscribeOnImgClick(self.onImgClick)
 
-    def onImgClick(self, event):
-        point = event.pos()
-        item = self.a.itemAt(point)
-        scenePoint = self.a.mapToScene(point)
-        if item is None:
-            return
-        mapped = item.mapFromScene(scenePoint)
-        imgPoint = QPoint(mapped.x() / 8, mapped.y()/8)
-        self.updateCross(scenePoint)
-        self.findSegments(imgPoint)
+        self.distanceMethodController = DistanceMethodController(self.findChild(QSlider, 'dstThreshold'),
+                                                                 self.findChild(QLabel, 'pcaThresholdVal'))
+        self.distanceMethodController.subscribeOnSegmentationFinished(self.onSegmentationFinished)
+        self.selPanelCtrl.loadImg('jasperRidge2_R198.hdr')
 
-    def sliderValChanged(self, val):
-        self.scaleImg(val)
+        self.pcaSelPanelCtrl = SelectionPanelController(self.findChild(QGraphicsView, 'pcaImg'),
+                                                        self.findChild(QLabel, 'pcaResult')
+                                                        , self.findChild(QLabel, 'pcaPixelPos'))
+        self.pcaSelPanelCtrl.loadImg('jasperRidge2_R198.hdr')
+        self.pcaSelPanelCtrl.subscribeOnImgClick(self.onPcaClick)
 
-    def loadImg(self):
-        self.imgs = open_image('jasperRidge2_R198.hdr')
-        self.arr = self.imgs.asarray()
-        rgb = get_rgb(self.imgs)
-        rgb = rgb * 255
-        rgb = rgb.astype(np.uint8)
-        self.i = QImage(rgb.tobytes(), rgb.shape[0], rgb.shape[1], rgb.shape[0] * 3, QImage.Format_RGB888)
+        self.pcaMethodController = PcaDistanceController(self.findChild(QSlider, 'pcaThreshold'),
+                                                         self.findChild(QLabel, 'pcaThresholdVal'),
+                                                         self.findChild(QSlider, 'pcaMaxComponents'),
+                                                         self.findChild(QLabel, 'pcaMaxComponentsVal'))
+        self.pcaMethodController.setOnSegmentationFinished(self.onPcaSegmentationFinished)
 
-        p = QPixmap.fromImage(self.i, Qt.AutoColor)
-        self.imgItem: QGraphicsPixmapItem = self.a.scene().addPixmap(p)
-        self.scaleImg(8)
-        #self.a.setPixmap(p)
-        #self.a.setMask(p.mask())
+    def onImgClick(self, imgPoint: QPoint):
+        self.distanceMethodController.startSegmentation(imgPoint, self.selPanelCtrl.file, self.selPanelCtrl.loadedImg)
 
-    def findSegments(self, p: QPoint):
-        matching = []
-        vec1 = self.arr[p.y(), p.x(), :]
-        imgCpy = self.i.copy()
-        for ii in range(0, self.i.size().width()):
-            for jj in range(0, self.i.size().height()):
-                if ii != p.x() or jj != p.y():
-                    vec2 = self.arr[jj, ii, :]
-                    dif = np.subtract(vec2, vec1).astype(np.int32)
-                    dist = np.sum(np.sqrt(np.power(dif, 2).astype(np.int64)))
-                    if dist < 30_000:
-                        matching.append((ii,jj,dist))
-        for i in range(0, len(matching)):
-            imgCpy.setPixelColor(matching[i][0],matching[i][1], QColor('white'))
-        imgCpy.setPixelColor(p.x(), p.y(), QColor('white'))
-        p = QPixmap.fromImage(imgCpy, Qt.AutoColor)
-        self.resultImg = imgCpy
-        self.resultLabel.setPixmap(p)
-        self.resultLabel.setMask(p.mask())
-        self.scaleResult()
+    def onPcaClick(self, imgPoint: QPoint):
+        self.pcaMethodController.startSegmentation(imgPoint, self.pcaSelPanelCtrl.file, self.pcaSelPanelCtrl.loadedImg)
 
-    def scaleImg(self, factor):
-        p = QPixmap.fromImage(self.i.scaled(self.i.size().width() * factor, self.i.size().height() * factor),
-                              Qt.AutoColor)
+    def onPcaSegmentationFinished(self, img: QImage):
+        self.pcaSelPanelCtrl.displayResult(img)
 
-        self.a.scene().removeItem(self.imgItem)
-        self.imgItem: QGraphicsPixmapItem = self.a.scene().addPixmap(p)
+    def onSegmentationFinished(self, img: QImage):
+        self.selPanelCtrl.displayResult(img)
 
-        #self.a.setPixmap(p)
-        #self.a.setMask(p.mask())
-
-    def scaleResult(self):
-        destW = self.imgItem.pixmap().width() if self.resultLabel.size().width() > self.imgItem.pixmap().width() \
-            else self.resultLabel.size().width()
-        destH = self.imgItem.pixmap().height() if self.resultLabel.size().height() > self.imgItem.pixmap().height() \
-            else self.resultLabel.size().height()
-        sw = destW
-        sh = destH
-
-        if self.resultImg.width() * sh > sw * self.resultImg.height():
-            destH = sw * self.resultImg.height() / self.resultImg.width()
-        else:
-            destW = sh * self.resultImg.width() / self.resultImg.height()
-        p = QPixmap.fromImage(self.resultImg.scaled(destW, destH))
-        self.resultLabel.setPixmap(p)
-        self.resultLabel.setMask(p.mask())
-
-    def renderCross(self, p: QPoint):
-        path = QPainterPath()
-        path.moveTo(10, 0)
-        path.lineTo(10,  + 20)
-        path.moveTo(0, 10)
-        path.lineTo(20, 10)
-
-        pen = QPen(QColor(255,0,0))
-        pen.setWidth(5)
-        self.crossItem = self.a.scene().addPath(path, pen)
-
-    def updateCross(self, p: QPoint):
-        self.crossItem.setPos(p.x() - 10, p.y() - 10)
 
 app = QtWidgets.QApplication(sys.argv)
 window = MainWindow()
