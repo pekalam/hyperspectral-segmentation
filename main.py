@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QLabel, QGraphicsView, QSlider, QPushButton, QWidget
 from spectral import *
 
 from gui.distanceMethodController import DistanceMethodController
-from gui.hyperspectralImgModel import HyperspectralImgModel
+from hyperspectralImgModel import HyperspectralImgModel
 from gui.pcaDistanceController import PcaDistanceController
 from gui.selectionPanelController import SelectionPanelController
 

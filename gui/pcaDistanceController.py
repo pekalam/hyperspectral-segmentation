@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QSlider, QLabel, QPushButton, QWidget, QStatusBar
 
 from gui.distanceMethodController import DistanceMethodController
-from gui.hyperspectralImgModel import HyperspectralImgModel
+from hyperspectralImgModel import HyperspectralImgModel
 from pcaDistanceSegmentation import pcaDistanceSegmentation
 
 

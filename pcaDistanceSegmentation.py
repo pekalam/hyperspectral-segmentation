@@ -3,7 +3,7 @@ import numpy as np
 from PyQt5.QtCore import QPoint
 from PyQt5.QtGui import QImage
 from distanceSegmentation import distanceSegmentation
-from gui.hyperspectralImgModel import HyperspectralImgModel
+from hyperspectralImgModel import HyperspectralImgModel
 
 
 def pcaDistanceSegmentation(p: QPoint, model: HyperspectralImgModel, threshold, maxComponents) -> QImage:

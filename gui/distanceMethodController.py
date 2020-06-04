@@ -3,7 +3,7 @@ from PyQt5.QtGui import QImage
 from PyQt5.QtWidgets import QSlider, QLabel, QPushButton, QWidget, QStatusBar
 
 from distanceSegmentation import distanceSegmentation
-from gui.hyperspectralImgModel import HyperspectralImgModel
+from hyperspectralImgModel import HyperspectralImgModel
 
 
 class DistanceMethodController:

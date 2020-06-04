@@ -1,7 +1,7 @@
 import numpy as np
 from PyQt5.QtCore import QPoint, Qt
 from PyQt5.QtGui import QImage, QColor, QPixmap
-from gui.hyperspectralImgModel import HyperspectralImgModel
+from hyperspectralImgModel import HyperspectralImgModel
 
 
 # oblicza odleglosc euklidesową od kazdego punktu obrazu do wybranego punktu na obrazie danego przez p

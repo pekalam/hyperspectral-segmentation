@@ -1,6 +1,6 @@
+import numpy as np
 from PyQt5.QtGui import QImage
 from spectral.io.bilfile import BilFile
-import numpy as np
 
 
 class HyperspectralImgModel:
@@ -15,4 +15,3 @@ class HyperspectralImgModel:
                             self.imgArr[:, :, i].max() - self.imgArr[:, :, i].min())
         else:
             self.imgArr = imgArr
-

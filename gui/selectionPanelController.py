@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QGraphicsView, QLabel, QGraphicsScene, QGraphicsPixm
 from spectral import open_image, get_rgb
 from spectral.io.bilfile import BilFile
 
-from gui.hyperspectralImgModel import HyperspectralImgModel
+from hyperspectralImgModel import HyperspectralImgModel
 
 
 class SelectionPanelController:
@@ -74,7 +74,7 @@ class SelectionPanelController:
         point = event.pos()
         item = self.graphicsView.itemAt(point)
         if item is None:
-            pass
+            return
         scenePoint = self.graphicsView.mapToScene(point)
         mapped = self.imgItem.mapFromScene(scenePoint)
         imgPoint = QPoint(mapped.x() / self.scaleFactor, mapped.y() / self.scaleFactor)
