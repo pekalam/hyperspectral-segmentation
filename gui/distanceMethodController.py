@@ -1,7 +1,6 @@
 from PyQt5.QtCore import QPoint, QCoreApplication
 from PyQt5.QtGui import QImage
 from PyQt5.QtWidgets import QSlider, QLabel, QPushButton, QWidget, QStatusBar
-from spectral.io.bilfile import BilFile
 
 from distanceSegmentation import distanceSegmentation
 from gui.hyperspectralImgModel import HyperspectralImgModel
@@ -34,22 +33,22 @@ class DistanceMethodController:
     def setImg(self, model: HyperspectralImgModel):
         self._model = model
         self._slider.setMinimum(0)
-        self._slider.setMaximum(50_000)
-        self._slider.setValue(2600)
+        self._slider.setMaximum(10 * 100)
+        self._slider.setValue(1 * 100)
         self._applyBtn.setDisabled(True)
         self._firstSegmentation = False
         self._toggleControlsDisabled()
 
     def beginSegmentation(self):
         if self._firstSegmentation:
-            segmented = distanceSegmentation(self._point, self._model.img.asarray(), self._model.sceneImg, self._slider.value())
+            segmented = distanceSegmentation(self._point, self._model, self._slider.value() / 100)
             self._raiseOnSegmentationFinished(segmented)
 
     def setOnSegmentationFinished(self, fn):
         self.__onSegmentationFinishedCallback = fn
 
     def onThresholdValueChanged(self, val):
-        self._valLabel.setText(str(val))
+        self._valLabel.setText(str(val / 100))
         self._applyBtn.setDisabled(False)
 
     def onApplyClicked(self):

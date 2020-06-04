@@ -15,7 +15,7 @@ class PcaDistanceController(DistanceMethodController):
 
     def beginSegmentation(self):
         if self._firstSegmentation:
-            segmented = pcaDistanceSegmentation(self._point, self._model.img, self._model.sceneImg, self._slider.value(),
+            segmented = pcaDistanceSegmentation(self._point, self._model, self._slider.value() / 100,
                                                 self._maxComponentsSlider.value())
             self._raiseOnSegmentationFinished(segmented)
 
