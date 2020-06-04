@@ -6,7 +6,7 @@ from PyQt5.QtCore import QPoint
 from PyQt5 import QtWidgets
 from PyQt5 import uic
 from PyQt5.QtGui import QImage
-from PyQt5.QtWidgets import QLabel, QGraphicsView, QSlider, QPushButton, QWidget, QAction, QMenu
+from PyQt5.QtWidgets import QLabel, QGraphicsView, QSlider, QPushButton, QWidget, QAction, QMenu, QStatusBar
 from spectral import *
 
 from gui.distanceMethodController import DistanceMethodController
@@ -62,7 +62,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.distanceMethodController = DistanceMethodController(self.findChild(QSlider, 'dstThreshold'),
                                                                  self.findChild(QLabel, 'dstThresholdVal'),
                                                                  self.findChild(QPushButton, 'dstApplyBtn'),
-                                                                 self.findChild(QWidget, 'dstMethodPanel'))
+                                                                 self.findChild(QWidget, 'dstMethodPanel'),
+                                                                 self.findChild(QStatusBar, 'statusBar'))
         self.selPanelCtrl.setOnImgClick(self.onImgClick)
         self.selPanelCtrl.setOnImgLoaded(self.onDstImgLoaded)
         self.distanceMethodController.setOnSegmentationFinished(self.onSegmentationFinished)
@@ -75,6 +76,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                                          self.findChild(QLabel, 'pcaThresholdVal'),
                                                          self.findChild(QPushButton, 'pcaApplyBtn'),
                                                          self.findChild(QWidget, 'pcaMethodPanel'),
+                                                         self.findChild(QStatusBar, 'statusBar'),
                                                          self.findChild(QSlider, 'pcaMaxComponents'),
                                                          self.findChild(QLabel, 'pcaMaxComponentsVal'))
         self.pcaSelPanelCtrl.setOnImgClick(self.onPcaClick)

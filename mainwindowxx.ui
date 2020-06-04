@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_7">
     <property name="bottomMargin">
-     <number>20</number>
+     <number>9</number>
     </property>
     <item>
      <widget class="QTabWidget" name="tabWidget">
@@ -454,6 +454,11 @@
     <addaction name="actionUrban"/>
    </widget>
    <addaction name="menuImage"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar">
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
   </widget>
   <action name="actionJasper_Ridge">
    <property name="text">

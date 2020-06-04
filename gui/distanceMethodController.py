@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QPoint
+from PyQt5.QtCore import QPoint, QCoreApplication
 from PyQt5.QtGui import QImage
-from PyQt5.QtWidgets import QSlider, QLabel, QPushButton, QWidget
+from PyQt5.QtWidgets import QSlider, QLabel, QPushButton, QWidget, QStatusBar
 from spectral.io.bilfile import BilFile
 
 from distanceSegmentation import distanceSegmentation
@@ -8,9 +8,10 @@ from gui.hyperspectralImgModel import HyperspectralImgModel
 
 
 class DistanceMethodController:
-    def __init__(self, thrSlider: QSlider, thrVal: QLabel, applyBtn: QPushButton, panel: QWidget, *args, **kwargs):
+    def __init__(self, thrSlider: QSlider, thrVal: QLabel, applyBtn: QPushButton, panel: QWidget, statusBar: QStatusBar, *args, **kwargs):
         self._slider: QSlider = thrSlider
         self._valLabel: QLabel = thrVal
+        self._statusBar: QStatusBar = statusBar
         self._applyBtn = applyBtn
         self._panel = panel
         self._point = None
@@ -24,7 +25,10 @@ class DistanceMethodController:
     def doSegmentationAt(self, p: QPoint):
         self._point = p
         self._firstSegmentation = True
+        self._statusBar.showMessage("LOADING...")
+        QCoreApplication.processEvents()
         self.beginSegmentation()
+        self._statusBar.showMessage("")
         self._toggleControlsDisabled()
 
     def setImg(self, model: HyperspectralImgModel):
@@ -33,6 +37,8 @@ class DistanceMethodController:
         self._slider.setMaximum(50_000)
         self._slider.setValue(2600)
         self._applyBtn.setDisabled(True)
+        self._firstSegmentation = False
+        self._toggleControlsDisabled()
 
     def beginSegmentation(self):
         if self._firstSegmentation:
@@ -47,8 +53,11 @@ class DistanceMethodController:
         self._applyBtn.setDisabled(False)
 
     def onApplyClicked(self):
-        self.beginSegmentation()
+        self._statusBar.showMessage("LOADING...")
         self._applyBtn.setDisabled(True)
+        QCoreApplication.processEvents()
+        self.beginSegmentation()
+        self._statusBar.showMessage("")
 
     def _toggleControlsDisabled(self):
         self._panel.setDisabled(not self._firstSegmentation)

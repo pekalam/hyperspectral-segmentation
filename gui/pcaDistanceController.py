@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QSlider, QLabel, QPushButton, QWidget
+from PyQt5.QtWidgets import QSlider, QLabel, QPushButton, QWidget, QStatusBar
 
 from gui.distanceMethodController import DistanceMethodController
 from gui.hyperspectralImgModel import HyperspectralImgModel
@@ -6,11 +6,11 @@ from pcaDistanceSegmentation import pcaDistanceSegmentation
 
 
 class PcaDistanceController(DistanceMethodController):
-    def __init__(self, thrSlider: QSlider, thrVal: QLabel, applyBtn: QPushButton, panel: QWidget,
+    def __init__(self, thrSlider: QSlider, thrVal: QLabel, applyBtn: QPushButton, panel: QWidget, statusBar: QStatusBar,
                  maxComponentsSlider: QSlider, maxComponentsVal: QLabel, *args, **kwargs):
         self._maxComponentsVal = maxComponentsVal
         self._maxComponentsSlider = maxComponentsSlider
-        super().__init__(thrSlider, thrVal, applyBtn, panel, *args, **kwargs)
+        super().__init__(thrSlider, thrVal, applyBtn, panel, statusBar, *args, **kwargs)
         maxComponentsSlider.valueChanged.connect(self.onMaxComponentsValChanged)
 
     def beginSegmentation(self):
