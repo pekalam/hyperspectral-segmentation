@@ -31,7 +31,7 @@ class DistanceMethodController:
         self._model = model
         self._slider.setMinimum(0)
         self._slider.setMaximum(50_000)
-        self._slider.setValue(30_000)
+        self._slider.setValue(2600)
         self._applyBtn.setDisabled(True)
 
     def beginSegmentation(self):

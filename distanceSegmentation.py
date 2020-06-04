@@ -12,8 +12,8 @@ def distanceSegmentation(p: QPoint, arr: np.ndarray, orgSceneImg: QImage, thresh
         for j in range(0, arr.shape[0]):
             if i != p.x() or j != p.y():
                 vec2 = arr[j, i, :]
-                dif = np.subtract(vec2, vec1).astype(np.int32)
-                dist = np.sum(np.sqrt(np.power(dif, 2).astype(np.int64)))
+                dif = np.subtract(vec2.astype(np.int32), vec1.astype(np.int32))
+                dist = np.sqrt(np.sum(np.power(dif.astype(np.int64), 2)))
                 if dist < threshold:
                     matching.append((i, j, dist))
     for i in range(0, len(matching)):

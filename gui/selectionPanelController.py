@@ -3,7 +3,7 @@ from typing import Callable
 import numpy as np
 from PyQt5.QtCore import QPoint, Qt, QCoreApplication
 from PyQt5.QtGui import QPixmap, QPainterPath, QPen, QColor, QImage
-from PyQt5.QtWidgets import QGraphicsView, QLabel, QGraphicsScene, QGraphicsPixmapItem
+from PyQt5.QtWidgets import QGraphicsView, QLabel, QGraphicsScene, QGraphicsPixmapItem, QSlider
 from spectral import open_image, get_rgb
 from spectral.io.bilfile import BilFile
 
@@ -11,7 +11,7 @@ from gui.hyperspectralImgModel import HyperspectralImgModel
 
 
 class SelectionPanelController:
-    def __init__(self, graphicsView: QGraphicsView, result: QLabel, pixelPos: QLabel, *args, **kwargs):
+    def __init__(self, graphicsView: QGraphicsView, result: QLabel, pixelPos: QLabel, zoomSlider: QSlider, *args, **kwargs):
         self.graphicsView = graphicsView
         self.graphicsView.setScene(QGraphicsScene())
         self.graphicsView.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
@@ -23,6 +23,8 @@ class SelectionPanelController:
         self.crossItem = None
         self.resultLabel = result
         self.pixelPos = pixelPos
+        self.zoomSlider = zoomSlider
+        zoomSlider.valueChanged.connect(self.__onZoomChanged)
 
     def setOnImgClick(self, fn):
         self.onImgClickCallback = fn
@@ -38,6 +40,9 @@ class SelectionPanelController:
         if self.onImgLoadedCallback is not None:
             self.onImgLoadedCallback(model)
 
+    def __onZoomChanged(self, val):
+        self.scaleImg(val)
+
     def scaleImg(self, factor):
         img = self.hyperspectralImg.sceneImg
         p = QPixmap.fromImage(img.scaled(img.size().width() * factor,
@@ -46,6 +51,7 @@ class SelectionPanelController:
         self.graphicsView.mousePressEvent = self.onSceneClick
         self.imgItem: QGraphicsPixmapItem = self.graphicsView.scene().addPixmap(p)
         self.scaleFactor = factor
+        self.renderCrosshair()
 
     def renderCrosshair(self):
         if self.crossItem is not None:
@@ -57,8 +63,9 @@ class SelectionPanelController:
         path.lineTo(20, 10)
 
         pen = QPen(QColor(255, 0, 0))
-        pen.setWidth(5)
+        pen.setWidth(1.5 * self.scaleFactor if 2 * self.scaleFactor < 5 else 5)
         self.crossItem = self.graphicsView.scene().addPath(path, pen)
+        self.pixelPos.setText("")
 
     def updateCrosshair(self, p: QPoint):
         self.crossItem.setPos(p.x() - 10, p.y() - 10)
@@ -80,6 +87,8 @@ class SelectionPanelController:
         if self.imgItem is not None:
             self.graphicsView.scene().removeItem(self.imgItem)
             self.resultLabel.clear()
+            self.resultLabel.setText("Click on img")
+        self.prevPoint = None
         file: BilFile = open_image(filePath)
         rgb = get_rgb(file)
         rgb = rgb * 255
@@ -91,8 +100,7 @@ class SelectionPanelController:
 
         p = QPixmap.fromImage(loadedImg, Qt.AutoColor)
         self.imgItem: QGraphicsPixmapItem = self.graphicsView.scene().addPixmap(p)
-        self.scaleImg(8)
-        self.renderCrosshair()
+        self.scaleImg(self.zoomSlider.value())
 
 
     def displayResult(self, img: QImage):

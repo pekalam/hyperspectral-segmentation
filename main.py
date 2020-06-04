@@ -57,7 +57,8 @@ class MainWindow(QtWidgets.QMainWindow):
         uic.loadUi("mainwindowxx.ui", self)
         self.selPanelCtrl = SelectionPanelController(self.findChild(QGraphicsView, 'graphicsView'),
                                                      self.findChild(QLabel, 'label'),
-                                                     self.findChild(QLabel, 'dstPixelPos'))
+                                                     self.findChild(QLabel, 'dstPixelPos'),
+                                                     self.findChild(QSlider, 'dstZoomSlider'))
         self.distanceMethodController = DistanceMethodController(self.findChild(QSlider, 'dstThreshold'),
                                                                  self.findChild(QLabel, 'dstThresholdVal'),
                                                                  self.findChild(QPushButton, 'dstApplyBtn'),
@@ -68,7 +69,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.pcaSelPanelCtrl = SelectionPanelController(self.findChild(QGraphicsView, 'pcaImg'),
                                                         self.findChild(QLabel, 'pcaResult')
-                                                        , self.findChild(QLabel, 'pcaPixelPos'))
+                                                        , self.findChild(QLabel, 'pcaPixelPos'),
+                                                        self.findChild(QSlider, 'pcaZoomSlider'))
         self.pcaMethodController = PcaDistanceController(self.findChild(QSlider, 'pcaThreshold'),
                                                          self.findChild(QLabel, 'pcaThresholdVal'),
                                                          self.findChild(QPushButton, 'pcaApplyBtn'),

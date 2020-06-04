@@ -44,7 +44,7 @@
          <number>0</number>
         </property>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout">
+         <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
           <property name="spacing">
            <number>0</number>
           </property>
@@ -75,6 +75,42 @@
           </item>
           <item>
            <widget class="QGraphicsView" name="graphicsView"/>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>Zoom</string>
+              </property>
+              <property name="margin">
+               <number>8</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="dstZoomSlider">
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>10</number>
+              </property>
+              <property name="value">
+               <number>6</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::NoTicks</enum>
+              </property>
+              <property name="tickInterval">
+               <number>1</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
@@ -200,7 +236,7 @@
          <number>0</number>
         </property>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
+         <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0">
           <property name="spacing">
            <number>0</number>
           </property>
@@ -231,6 +267,39 @@
           </item>
           <item>
            <widget class="QGraphicsView" name="pcaImg"/>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_9">
+            <item>
+             <widget class="QLabel" name="label_4">
+              <property name="text">
+               <string>Zoom</string>
+              </property>
+              <property name="margin">
+               <number>8</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="pcaZoomSlider">
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>10</number>
+              </property>
+              <property name="value">
+               <number>6</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="tickInterval">
+               <number>1</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
